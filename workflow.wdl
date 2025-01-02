@@ -9,52 +9,52 @@ workflow SBayesRC_prs {
     }
 
      input {
-        File ld
-        File ma
-        File annot
+        File pgen
+        File psam
+        File pvar
+        File weight_file
+        Int memSizeGB = 4
+        Int threadCount = 2
         Int diskSizeGB = 20
-	    String out_prefix
+	    String out_name
     }
 
     call run_checking { 
-			input: ld = ld, ma=ma, annot=annot, memSizeGB=memSizeGB, threadCount=threadCount, diskSizeGB=diskSizeGB, out_prefix=out_prefix
+			input: pgen=pgen, psam=psam, pvar=pvar,weight_file = weight_file, memSizeGB=memSizeGB, threadCount=threadCount, diskSizeGB=diskSizeGB, out_name=out_name
 	}
 
     output {
-        Array[File] out_files = run_checking.out_files
+        Array[File] score_out = run_checking.score_out
     }
 
 }
 
 task run_checking {
     input {
-        File ld
-        File annot
-        File ma
+        File weight_file
+        File psam
+        File pvar
+        File pgen
         Int memSizeGB
         Int threadCount
         Int diskSizeGB
-	    String out_prefix
-        String ld_name = basename(ld, ".tar.xz")
-        String annot_name = basename(annot, ".zip")
+	    String out_name
+        String plink_file = basename(pgen, ".pgen")
     }
     
     command <<<
     
-    # Polygenic risk score
-    ## Just a toy demo to calculate the polygenic risk score
-    genoPrefix="test_chr{CHR}" # {CHR} means multiple genotype file.
-    ## If just one genotype, input the full prefix genoPrefix="test"
-    genoCHR="1-22" ## means {CHR} expands to 1-22 and X,
-    ## if just one genotype file, input genoCHR=""
-    output="test"
-    Rscript -e "SBayesRC::prs(weight='${out_prefix}_sbrc.txt', genoPrefix='$genoPrefix', \
-                       out='$output', genoCHR='$genoCHR')"
-    ## test.score.txt is the polygenic risk score
+    mv ~{psam} ~{plink_file}.psam
+    mv ~{pvar} ~{plink_file}.pvar
+    mv ~{pgen} ~{plink_file}.pgen
+    
+    Rscript -e "SBayesRC::prs(weight='~{weight_file}', genoPrefix='~{plink_file}', \
+                       out='~{out_name}', genoCHR='1-22')"
+
     >>>
 
     output {
-        Array[File] out_files = glob("*.score.txt")
+        Array[File] score_out = glob("*.score.txt")
     }
 
     runtime {
