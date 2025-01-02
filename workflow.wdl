@@ -9,9 +9,9 @@ workflow SBayesRC_prs {
     }
 
      input {
-        File pgen
-        File psam
-        File pvar
+        File bed
+        File bim
+        File fam
         File weight_file
         Int memSizeGB = 4
         Int threadCount = 2
@@ -19,7 +19,7 @@ workflow SBayesRC_prs {
     }
 
     call run_checking { 
-			input: pgen=pgen, psam=psam, pvar=pvar,weight_file = weight_file, memSizeGB=memSizeGB, threadCount=threadCount, diskSizeGB=diskSizeGB
+			input: bed=bed,bim=bim,fam=fam,weight_file = weight_file, memSizeGB=memSizeGB, threadCount=threadCount, diskSizeGB=diskSizeGB
 	}
 
     output {
@@ -31,20 +31,20 @@ workflow SBayesRC_prs {
 task run_checking {
     input {
         File weight_file
-        File psam
-        File pvar
-        File pgen
+        File bed
+        File bim
+        File fam
         Int memSizeGB
         Int threadCount
         Int diskSizeGB
-        String plink_file = basename(pgen, ".pgen")
+        String plink_file = basename(fam, ".fam")
     }
     
     command <<<
     
-    mv ~{psam} ~{plink_file}.psam
-    mv ~{pvar} ~{plink_file}.pvar
-    mv ~{pgen} ~{plink_file}.pgen
+    mv ~{bed} ~{plink_file}.bed
+    mv ~{bim} ~{plink_file}.bim
+    mv ~{fam} ~{plink_file}.fam
     
     Rscript -e "SBayesRC::prs(weight='~{weight_file}', genoPrefix='~{plink_file}', \
                        out='prsrun', genoCHR='')"
