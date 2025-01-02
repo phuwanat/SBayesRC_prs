@@ -52,7 +52,7 @@ task run_checking {
     >>>
 
     output {
-        Array[File] score_out = glob("*.score.txt")
+        Array[File] score_out = glob("*prsrun*")
     }
 
     runtime {
