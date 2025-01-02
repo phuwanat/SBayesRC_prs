@@ -49,7 +49,7 @@ task run_checking {
     mv ~{pgen} ~{plink_file}.pgen
     
     Rscript -e "SBayesRC::prs(weight='~{weight_file}', genoPrefix='~{plink_file}', \
-                       out='~{out_name}', genoCHR='1-22')"
+                       out='~{out_name}', genoCHR='')"
 
     >>>
 
